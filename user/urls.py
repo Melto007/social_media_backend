@@ -8,7 +8,8 @@ from user import views
 
 router = DefaultRouter()
 
-router.register('', views.UserRegisterMixin, basename='')
+router.register('register', views.UserRegisterMixin, basename='register')
+router.register('login', views.LoginMixin, basename='login')
 
 urlpatterns = [
     path('', include(router.urls))
