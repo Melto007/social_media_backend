@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import datetime
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -153,3 +154,5 @@ AUTH_USER_MODEL = 'core.User'
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+TOKEN_EXPIRES = datetime.datetime.utcnow() + datetime.timedelta(days=7)

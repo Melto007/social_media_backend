@@ -12,8 +12,16 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from config import authentication
 from .serializer import (
-    TokenSerializer
+    TokenSerializer,
+    ResetSerializer
 )
+from core.models import (
+    TokenUser,
+    Reset
+)
+import datetime
+import random
+import string
 
 
 """ Register user for class """
@@ -94,19 +102,15 @@ class LoginMixin(
             access_token = authentication.create_access_token(user.id)
             refresh_token = authentication.create_refresh_token(user.id)
 
-            response = Response()
+            TokenUser.objects.create(user=user.id, token=refresh_token)
 
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True
-            )
+            request.session['refresh_token'] = refresh_token
 
-            response.data = {
+            response = {
                 'token': access_token,
             }
 
-            return response
+            return Response(response, status=status.HTTP_200_OK)
 
         except Exception as e:
             response = {
@@ -120,13 +124,25 @@ class RefreshMixin(
     viewsets.GenericViewSet
 ):
     serializer_class = TokenSerializer
-    queryset = get_user_model().objects.all()
+    queryset = TokenUser.objects.all()
 
     def create(self, request):
         try:
-            refresh_token = request.COOKIES.get('refresh_token')
+            refresh_token = request.session.get('refresh_token', False)
 
             id = authentication.decode_refresh_token(refresh_token)
+
+            if not self.queryset.filter(
+                user=id,
+                token=refresh_token,
+                expired_at__gt=datetime.datetime.now(tz=datetime.timezone.utc)
+            ).exists():
+                self.queryset.filter(
+                    user=id,
+                    token=refresh_token
+                ).delete()
+                raise exceptions.AuthenticationFailed('Unauthorized User')
+
             access_token = authentication.create_access_token(id)
 
             response = {
@@ -137,6 +153,71 @@ class RefreshMixin(
         except Exception as e:
             response = {
                 'error': e.args
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutMixin(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = TokenSerializer
+    queryset = TokenUser.objects.all()
+    authentication_classes = [authentication.JWTAuthentication]
+
+    def list(self, request):
+        try:
+            refresh_token = request.session.get('refresh_token', False)
+
+            if not refresh_token:
+                raise exceptions.AuthenticationFailed('Unauthorized User')
+
+            self.queryset.filter(
+                user=request.user.id,
+                token=refresh_token
+            ).delete()
+
+            del request.session['refresh_token']
+
+            response = {
+                'message': 'Successfully logout'
+            }
+
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response = {
+                'message': e.args
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetMixin(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = ResetSerializer
+    queryset = Reset.objects.all()
+
+    def create(self, request):
+        try:
+            email = request.data.get('email', None)
+
+            if not get_user_model().objects.filter(email=email).exists():
+                raise exceptions.APIException('Invalid Credential')
+
+            token = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
+            serializer = self.get_serializer(data={'email': email, 'token': token})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            response = {
+                'message': 'Reset Token generated successfully'
+            }
+
+            return Response(response, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            response = {
+                'message': e.args
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 

@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     AbstractUser
 )
+from django.conf import settings
 # from phone_field import PhoneField
 
 
@@ -68,11 +69,19 @@ class User(AbstractUser):
     objects = UserManager()
 
 
-class TokenUser:
+class TokenUser(models.Model):
     user = models.IntegerField(null=True, blank=True)
     token = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField()
+    expired_at = models.DateTimeField(default=settings.TOKEN_EXPIRES)
 
     def __str__(self):
         return self.token
+
+
+class Reset(models.Model):
+    email = models.EmailField()
+    token = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.email

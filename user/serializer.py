@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from core.models import (
-    TokenUser
+    TokenUser,
+    Reset
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,3 +29,13 @@ class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = TokenUser
         fields = ['id', 'user', 'token']
+
+
+class ResetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reset
+        fields = ['email', 'token']
+        extra_kwargs = { 'email': { 'write_only': True } }
+
+        def create(self, validated_data):
+            return Reset.objects.create(**validated_data)

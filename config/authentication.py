@@ -35,7 +35,7 @@ def create_access_token(id):
     return jwt.encode(
         {
             'user_id': id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
             'iat': datetime.datetime.utcnow()
         },
         secret,
@@ -63,7 +63,7 @@ def create_refresh_token(id):
     return jwt.encode(
         {
             'user_id': id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=7),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7),
             'iat': datetime.datetime.utcnow(),
         },
         secret,

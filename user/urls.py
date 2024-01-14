@@ -12,6 +12,8 @@ router.register('register', views.UserRegisterMixin, basename='register')
 router.register('login', views.LoginMixin, basename='login')
 router.register('home', views.HomeMixinView, basename='home')
 router.register('refresh', views.RefreshMixin, basename='refresh')
+router.register('logout', views.LogoutMixin, basename='logout')
+router.register('reset', views.ResetMixin, basename='reset')
 
 urlpatterns = [
     path('', include(router.urls))
