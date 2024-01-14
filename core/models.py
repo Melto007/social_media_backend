@@ -66,3 +66,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+
+class TokenUser:
+    user = models.IntegerField(null=True, blank=True)
+    token = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField()
+
+    def __str__(self):
+        return self.token

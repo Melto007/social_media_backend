@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from core.models import (
+    TokenUser
+)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,3 +22,9 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Username is already exists")
 
         return get_user_model().objects.create_user(name=name, **validated_data)
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TokenUser
+        fields = ['id', 'user', 'token']

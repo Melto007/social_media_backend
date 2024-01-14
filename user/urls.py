@@ -10,6 +10,8 @@ router = DefaultRouter()
 
 router.register('register', views.UserRegisterMixin, basename='register')
 router.register('login', views.LoginMixin, basename='login')
+router.register('home', views.HomeMixinView, basename='home')
+router.register('refresh', views.RefreshMixin, basename='refresh')
 
 urlpatterns = [
     path('', include(router.urls))
