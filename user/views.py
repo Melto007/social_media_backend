@@ -35,6 +35,7 @@ class UserRegisterMixin(
 ):
     serializer_class = UserSerializer
     queryset = get_user_model().objects.all()
+    lookup_field = 'pk'
 
     def create(self, request):
         """ Register user """
@@ -209,12 +210,12 @@ class ResetMixin(
             if not get_user_model().objects.filter(email=email).exists():
                 raise exceptions.APIException('Invalid Credential')
 
-            token = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+            token = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(34))
             serializer = self.get_serializer(data={'email': email, 'token': token})
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            url = 'Enter this code to reset your password ' + token
+            url = 'http://localhost:3000/change-password/' + token
 
             mail = send_email(url, email)
 
@@ -235,42 +236,46 @@ class ResetMixin(
 
 
 class ChangePasswordMixin(
-    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
-    serializer_class = ResetSerializer
+    serializer_class = TokenSerializer
     queryset = Reset.objects.all()
 
-    def create(self, request):
-        data = request.data
+    def update(self, request, pk):
+        try:
+            data = request.data
 
-        code = data.get('code', None)
-        password = data.get('password', None)
-        confirmpassword = data.get('confirmpassword', None)
+            password = data.get('password', None)
+            confirmpassword = data.get('confirmpassword', None)
 
-        if password != confirmpassword:
-            raise exceptions.APIException('password do not match')
+            if password != confirmpassword:
+                raise exceptions.APIException('Password and Confirm Password must be same')
 
-        reset_password = self.queryset.filter(token=code).first()
+            reset_password = self.queryset.filter(token=pk).first()
 
-        if not reset_password:
-            raise exceptions.APIException('Invalid code')
+            if not reset_password:
+                raise exceptions.APIException('Invalid link')
 
-        user = get_user_model().objects.filter(email=reset_password.email).first()
+            user = get_user_model().objects.get(email=reset_password.email)
 
-        if not user:
-            raise exceptions.APIException('user not found')
+            if not user:
+                raise exceptions.APIException('User not found')
 
-        self.queryset.filter(Q(token=code) & Q(email=reset_password.email)).delete()
-        user.set_password(password)
-        user.save()
+            self.queryset.filter(Q(email=reset_password.email) & Q(token=pk)).delete()
+            user.set_password(password)
+            user.save()
 
-        response = {
-            'message': 'Password change successfully'
-        }
+            response = {
+                'message': 'Password Successfully Reset'
+            }
 
-        return Response(response, status=status.HTTP_200_OK)
-
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response = {
+                'message': e.args
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 class HomeMixinView(
     mixins.ListModelMixin,
