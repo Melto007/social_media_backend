@@ -5,7 +5,7 @@ def send_email(url, email):
     try:
         res = send_mail(
             "Reset Your Password",
-            "<a href='%s'>Click here</a> to reset your password" % url,
+            url,
             "from@example.com",
             [email],
             fail_silently=False,

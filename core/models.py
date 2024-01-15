@@ -76,7 +76,7 @@ class TokenUser(models.Model):
     expired_at = models.DateTimeField(default=settings.TOKEN_EXPIRES)
 
     def __str__(self):
-        return self.token
+        return str(self.token)
 
 
 class Reset(models.Model):

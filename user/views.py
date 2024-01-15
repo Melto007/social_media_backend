@@ -4,6 +4,7 @@ from rest_framework import (
     exceptions,
     status
 )
+from rest_framework import generics
 from rest_framework.response import Response
 from user.serializer import (
     UserSerializer
@@ -24,6 +25,7 @@ import datetime
 import random
 import string
 from django.db.models import Q
+from rest_framework.decorators import action
 
 
 """ Register user for class """
@@ -207,12 +209,12 @@ class ResetMixin(
             if not get_user_model().objects.filter(email=email).exists():
                 raise exceptions.APIException('Invalid Credential')
 
-            token = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
+            token = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
             serializer = self.get_serializer(data={'email': email, 'token': token})
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            url = 'http://localhost:3000/forgot-password/' + token
+            url = 'Enter this code to reset your password ' + token
 
             mail = send_email(url, email)
 
@@ -230,6 +232,44 @@ class ResetMixin(
                 'message': e.args
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordMixin(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = ResetSerializer
+    queryset = Reset.objects.all()
+
+    def create(self, request):
+        data = request.data
+
+        code = data.get('code', None)
+        password = data.get('password', None)
+        confirmpassword = data.get('confirmpassword', None)
+
+        if password != confirmpassword:
+            raise exceptions.APIException('password do not match')
+
+        reset_password = self.queryset.filter(token=code).first()
+
+        if not reset_password:
+            raise exceptions.APIException('Invalid code')
+
+        user = get_user_model().objects.filter(email=reset_password.email).first()
+
+        if not user:
+            raise exceptions.APIException('user not found')
+
+        self.queryset.filter(Q(token=code) & Q(email=reset_password.email)).delete()
+        user.set_password(password)
+        user.save()
+
+        response = {
+            'message': 'Password change successfully'
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class HomeMixinView(

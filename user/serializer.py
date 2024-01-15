@@ -34,7 +34,7 @@ class TokenSerializer(serializers.ModelSerializer):
 class ResetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reset
-        fields = ['email', 'token']
+        fields = ['id', 'email', 'token']
         extra_kwargs = { 'email': { 'write_only': True } }
 
         def create(self, validated_data):

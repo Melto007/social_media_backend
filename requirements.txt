@@ -1,4 +1,4 @@
-Django==3.2
+Django>=3.2.4,<3.3
 djangorestframework==3.13.1
 psycopg2==2.9.9
 python-dotenv==1.0.0
