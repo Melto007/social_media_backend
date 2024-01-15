@@ -156,3 +156,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 TOKEN_EXPIRES = datetime.datetime.utcnow() + datetime.timedelta(days=7)
+
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '037cc2335f4284'
+EMAIL_HOST_PASSWORD = '97a5ad97cbc880'
+EMAIL_PORT = '2525'

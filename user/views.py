@@ -11,6 +11,7 @@ from user.serializer import (
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from config import authentication
+from config.mail import send_email
 from .serializer import (
     TokenSerializer,
     ResetSerializer
@@ -22,6 +23,7 @@ from core.models import (
 import datetime
 import random
 import string
+from django.db.models import Q
 
 
 """ Register user for class """
@@ -158,7 +160,7 @@ class RefreshMixin(
 
 
 class LogoutMixin(
-    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = TokenSerializer
@@ -209,6 +211,14 @@ class ResetMixin(
             serializer = self.get_serializer(data={'email': email, 'token': token})
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+            url = 'http://localhost:3000/forgot-password/' + token
+
+            mail = send_email(url, email)
+
+            if mail != 1:
+                self.queryset.filter(Q(email=email) & Q(token=token)).delete()
+                raise exceptions.APIException("Mail not send")
 
             response = {
                 'message': 'Reset Token generated successfully'
