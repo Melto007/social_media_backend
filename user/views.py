@@ -25,7 +25,6 @@ import datetime
 import random
 import string
 from django.db.models import Q
-from rest_framework.decorators import action
 
 
 """ Register user for class """
@@ -62,9 +61,12 @@ class UserRegisterMixin(
             if password != confirm_password:
                 raise exceptions.APIException("Password and Confirm Password do not match")
 
-            serailizer = self.get_serializer(data=data)
-            serailizer.is_valid(raise_exception=True)
-            serailizer.save()
+            if self.queryset.filter(email=email).exists():
+                raise exceptions.APIException('Email is already registered')
+
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
             response = {
                 'message': 'user registered successfully'
@@ -109,14 +111,30 @@ class LoginMixin(
 
             TokenUser.objects.create(user=user.id, token=refresh_token)
 
-            request.session['refresh_token'] = refresh_token
+            # request.session['refresh_token'] = refresh_token
 
-            response = {
+            # response = {
+            #     'token': access_token,
+            #     'success': 'successfully login'
+            # }
+
+            # return Response(response, status=status.HTTP_200_OK)
+
+            response = Response()
+
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True
+            )
+
+            response.data = {
                 'token': access_token,
+                'success': 'successfully login',
+                'status': status.HTTP_200_OK
             }
 
-            return Response(response, status=status.HTTP_200_OK)
-
+            return response
         except Exception as e:
             response = {
                 "message": e.args
@@ -133,7 +151,8 @@ class RefreshMixin(
 
     def create(self, request):
         try:
-            refresh_token = request.session.get('refresh_token', False)
+            # refresh_token = request.session.get('refresh_token', False)
+            refresh_token = request.COOKIES.get('refresh_token', False)
 
             id = authentication.decode_refresh_token(refresh_token)
 
@@ -172,7 +191,8 @@ class LogoutMixin(
 
     def list(self, request):
         try:
-            refresh_token = request.session.get('refresh_token', False)
+            # refresh_token = request.session.get('refresh_token', False)
+            refresh_token = request.COOKIES.get('refresh_token', False)
 
             if not refresh_token:
                 raise exceptions.AuthenticationFailed('Unauthorized User')
@@ -182,13 +202,21 @@ class LogoutMixin(
                 token=refresh_token
             ).delete()
 
-            del request.session['refresh_token']
+            # del request.session['refresh_token']
 
-            response = {
-                'message': 'Successfully logout'
+            # response = {
+            #     'message': 'Successfully logout'
+            # }
+
+            response = Response()
+            response.delete_cookie('refresh_token')
+
+            response.data = {
+                'message': 'Successfully logout',
+                'status': status.HTTP_200_OK
             }
 
-            return Response(response, status=status.HTTP_200_OK)
+            return response
         except Exception as e:
             response = {
                 'message': e.args
@@ -215,7 +243,7 @@ class ResetMixin(
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            url = 'http://localhost:3000/change-password/' + token
+            url = 'http://localhost:5173/resetpassword/' + token
 
             mail = send_email(url, email)
 
@@ -224,7 +252,7 @@ class ResetMixin(
                 raise exceptions.APIException("Mail not send")
 
             response = {
-                'message': 'Reset Token generated successfully'
+                'message': 'Check your email for reset your password'
             }
 
             return Response(response, status=status.HTTP_201_CREATED)
