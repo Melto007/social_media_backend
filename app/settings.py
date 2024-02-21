@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "corsheaders",
 
     "core",
-    "user.apps.UserConfig"
+    "user.apps.UserConfig",
 ]
 
 MIDDLEWARE = [
@@ -69,9 +69,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "app.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -161,3 +158,6 @@ EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
 EMAIL_HOST_USER = '037cc2335f4284'
 EMAIL_HOST_PASSWORD = '97a5ad97cbc880'
 EMAIL_PORT = '2525'
+
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_KEY')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_SECRET')

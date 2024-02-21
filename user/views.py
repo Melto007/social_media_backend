@@ -25,6 +25,8 @@ import datetime
 import random
 import string
 from django.db.models import Q
+from google.oauth2 import id_token
+from google.auth.transport.requests import Request as GoogleRequest
 
 
 """ Register user for class """
@@ -77,8 +79,7 @@ class UserRegisterMixin(
             response = {
                 'message': e.args
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(response)
 
 """ Login user class """
 class LoginMixin(
@@ -137,11 +138,12 @@ class LoginMixin(
             return response
         except Exception as e:
             response = {
-                "message": e.args
+                "message": e.args,
+                "status": status.HTTP_404_NOT_FOUND
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response)
 
-
+""" Refresh user token """
 class RefreshMixin(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
@@ -180,7 +182,7 @@ class RefreshMixin(
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-
+""" logout user """
 class LogoutMixin(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
@@ -223,7 +225,7 @@ class LogoutMixin(
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-
+""" create password reset token """
 class ResetMixin(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
@@ -252,17 +254,19 @@ class ResetMixin(
                 raise exceptions.APIException("Mail not send")
 
             response = {
-                'message': 'Check your email for reset your password'
+                'message': 'Check your email for reset your password',
+                'status': status.HTTP_201_CREATED
             }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(response)
         except Exception as e:
             response = {
-                'message': e.args
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response)
 
-
+""" change password """
 class ChangePasswordMixin(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet
@@ -295,17 +299,20 @@ class ChangePasswordMixin(
             user.save()
 
             response = {
-                'message': 'Password Successfully Reset'
+                'message': 'Password Successfully Reset',
+                'status': status.HTTP_200_OK
             }
 
-            return Response(response, status=status.HTTP_200_OK)
+            return Response(response)
         except Exception as e:
             response = {
-                'message': e.args
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response)
 
-class HomeMixinView(
+""" user details """
+class ProfileMixinView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
@@ -316,10 +323,75 @@ class HomeMixinView(
     def list(self, request):
         try:
             serializer = self.get_serializer(request.user)
-            response = serializer.data
-            return Response(response, status=status.HTTP_200_OK)
+
+            response = {
+                'data': serializer.data,
+                'status': status.HTTP_200_OK
+            }
+
+            return Response(response)
         except Exception as e:
             response = {
-                'message': e.args
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response)
+
+""" google authentication for login user """
+class GoogleAuthentication(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = UserSerializer
+    queryset = get_user_model().objects.all()
+
+    def create(self, request):
+        try:
+            data = request.data
+
+            token = data.get('token', None)
+
+            if token is None:
+                raise exceptions.APIException('Invalid Credential - token')
+
+            googleUser = id_token.verify_oauth2_token(token, GoogleRequest())
+
+            if not googleUser:
+                raise exceptions.AuthenticationFailed("Invalid Credential")
+
+            user = self.queryset.filter(email=googleUser['email']).first()
+
+            if not user:
+                user = self.queryset.create(
+                    name = googleUser['name'],
+                    email = googleUser['email']
+                )
+                user.set_password(token)
+                user.save()
+
+            access_token = authentication.create_access_token(user.id)
+            refresh_token = authentication.create_refresh_token(user.id)
+
+            TokenUser.objects.create(user=user.id, token=refresh_token)
+
+            response = Response()
+
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True
+            )
+
+            response.data = {
+                'token': access_token,
+                'success': 'successfully login',
+                'status': status.HTTP_200_OK
+            }
+
+            return response
+        except Exception as e:
+            response = {
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
+            }
+            return Response(response)
