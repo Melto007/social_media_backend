@@ -5,11 +5,15 @@ load_dotenv()
 import os
 import jwt
 import datetime
+import requests
+from django.conf import settings
 
 from rest_framework.authentication import (
     BaseAuthentication,
     get_authorization_header
 )
+
+from django.utils.deprecation import MiddlewareMixin
 
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
@@ -83,3 +87,31 @@ def decode_refresh_token(token):
         return payload['user_id']
     except:
         raise exceptions.AuthenticationFailed('Unauthorized User')
+
+
+# class GoogleAuthenticationMiddleware:
+
+#     def __init__(self, get_response):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         print("Middleware: Custom code is running!")
+#         # Code to run before the view is called
+#         request.foo = "bar"
+
+#         #
+#         response = self.get_response(request) #
+#         return response  #
+
+#     def google_user_info(token):
+#         response = requests.get(
+#             settings.GOOGLE_USERINFO,
+#             params={'access_token': token['access_token']}
+#         )
+
+#         if not response.ok:
+#             raise exceptions.APIException('Invalid Credential')
+
+#         print("response", response)
+
+#         return response.json()

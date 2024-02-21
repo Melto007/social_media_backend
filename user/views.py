@@ -25,9 +25,10 @@ import datetime
 import random
 import string
 from django.db.models import Q
-from google.oauth2 import id_token
-from google.auth.transport.requests import Request as GoogleRequest
-
+# from google.oauth2 import id_token
+# from google.auth.transport.requests import Request as GoogleRequest
+import requests
+from django.conf import settings
 
 """ Register user for class """
 class UserRegisterMixin(
@@ -354,10 +355,15 @@ class GoogleAuthentication(
             if token is None:
                 raise exceptions.APIException('Invalid Credential - token')
 
-            googleUser = id_token.verify_oauth2_token(token, GoogleRequest())
+            response = requests.get(
+                settings.GOOGLE_USERINFO,
+                params={'access_token': token['access_token']}
+            )
 
-            if not googleUser:
-                raise exceptions.AuthenticationFailed("Invalid Credential")
+            if not response.ok:
+                raise exceptions.APIException('Invalid Credential')
+
+            googleUser = response.json()
 
             user = self.queryset.filter(email=googleUser['email']).first()
 

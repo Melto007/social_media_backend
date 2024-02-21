@@ -50,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "user.middleware.GoogleAuthenticationMiddleware"
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -161,3 +162,5 @@ EMAIL_PORT = '2525'
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_KEY')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_SECRET')
+
+GOOGLE_USERINFO = os.environ.get('GOOGLE_USERINFO')
