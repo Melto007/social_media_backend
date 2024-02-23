@@ -353,7 +353,7 @@ class GoogleAuthentication(
             token = data.get('token', None)
 
             if token is None:
-                raise exceptions.APIException('Invalid Credential - token')
+                raise exceptions.APIException('Invalid Credential')
 
             response = requests.get(
                 settings.GOOGLE_USERINFO,
@@ -367,9 +367,11 @@ class GoogleAuthentication(
 
             user = self.queryset.filter(email=googleUser['email']).first()
 
+            username = googleUser['name'].replace(" ", "").lower()
+
             if not user:
                 user = self.queryset.create(
-                    name = googleUser['name'],
+                    name = username,
                     email = googleUser['email']
                 )
                 user.set_password(token)
