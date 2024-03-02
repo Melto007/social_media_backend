@@ -25,8 +25,6 @@ import datetime
 import random
 import string
 from django.db.models import Q
-# from google.oauth2 import id_token
-# from google.auth.transport.requests import Request as GoogleRequest
 import requests
 from django.conf import settings
 

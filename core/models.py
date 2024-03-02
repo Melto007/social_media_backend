@@ -85,3 +85,13 @@ class Reset(models.Model):
 
     def __str__(self):
         return self.email
+
+class Profile(models.Model):
+    user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE)
+    county = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.user.name)
