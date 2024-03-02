@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from core.models import (
     TokenUser,
-    Reset
+    Reset,
+    Profile
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,5 +38,15 @@ class ResetSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'token']
         extra_kwargs = { 'email': { 'write_only': True } }
 
-        def create(self, validated_data):
-            return Reset.objects.create(**validated_data)
+    def create(self, validated_data):
+        return Reset.objects.create(**validated_data)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['id', 'user', 'county', 'state', 'city', 'bio']
+        depth=1
+
+    def create(self, validated_data):
+        return Profile.objects.create(**validated_data)

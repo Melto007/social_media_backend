@@ -4,7 +4,6 @@ from rest_framework import (
     exceptions,
     status
 )
-from rest_framework import generics
 from rest_framework.response import Response
 from user.serializer import (
     UserSerializer
@@ -15,7 +14,8 @@ from config import authentication
 from config.mail import send_email
 from .serializer import (
     TokenSerializer,
-    ResetSerializer
+    ResetSerializer,
+    ProfileSerializer
 )
 from core.models import (
     TokenUser,
@@ -27,6 +27,9 @@ import string
 from django.db.models import Q
 import requests
 from django.conf import settings
+from core.models import (
+    Profile
+)
 
 """ Register user for class """
 class UserRegisterMixin(
@@ -310,32 +313,6 @@ class ChangePasswordMixin(
             }
             return Response(response)
 
-""" user details """
-class ProfileMixinView(
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
-    serializer_class = UserSerializer
-    queryset = get_user_model().objects.all()
-    authentication_classes = [authentication.JWTAuthentication]
-
-    def list(self, request):
-        try:
-            serializer = self.get_serializer(request.user)
-
-            response = {
-                'data': serializer.data,
-                'status': status.HTTP_200_OK
-            }
-
-            return Response(response)
-        except Exception as e:
-            response = {
-                'message': e.args,
-                'status': status.HTTP_404_NOT_FOUND
-            }
-            return Response(response)
-
 """ google authentication for login user """
 class GoogleAuthentication(
     mixins.CreateModelMixin,
@@ -395,6 +372,32 @@ class GoogleAuthentication(
             }
 
             return response
+        except Exception as e:
+            response = {
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
+            }
+            return Response(response)
+
+""" user details """
+class ProfileMixinView(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = ProfileSerializer
+    queryset = Profile.objects.all()
+    authentication_classes = [authentication.JWTAuthentication]
+
+    def list(self, request):
+        try:
+            queryset = self.queryset.get(user=request.user)
+            serializer = self.get_serializer(queryset, many=False)
+            response = {
+                'data': serializer.data,
+                'status': status.HTTP_200_OK
+            }
+
+            return Response(response)
         except Exception as e:
             response = {
                 'message': e.args,
