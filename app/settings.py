@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 
     "core",
     "user.apps.UserConfig",
+    "followers.apps.FollowersConfig",
 ]
 
 MIDDLEWARE = [

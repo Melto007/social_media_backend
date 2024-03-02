@@ -3,7 +3,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 
 class GoogleAuthenticationMiddleware:
-
     def __init__(self, get_response):
         self.get_response = get_response
 
