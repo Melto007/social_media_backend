@@ -6,6 +6,10 @@ load_dotenv()
 import os
 import datetime
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +40,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "phone_field",
     "corsheaders",
+    "cloudinary",
 
     "core.apps.CoreConfig",
     "user.apps.UserConfig",
@@ -165,3 +170,10 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_KEY')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_SECRET')
 
 GOOGLE_USERINFO = os.environ.get('GOOGLE_USERINFO')
+
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUD_NAME'),
+    api_key = os.environ.get("CLOUD_KEY"),
+    api_secret = os.environ.get("CLOUD_SECRET"),
+    secure = os.environ.get("CLOUD_SECURE")
+)
