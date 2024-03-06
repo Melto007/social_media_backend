@@ -105,3 +105,6 @@ class ProfileDetails(models.Model):
     state = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
     bio = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.user.name)

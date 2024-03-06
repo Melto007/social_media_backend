@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     "phone_field",
     "corsheaders",
 
-    "core",
+    "core.apps.CoreConfig",
     "user.apps.UserConfig",
     "followers.apps.FollowersConfig",
 ]
