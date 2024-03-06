@@ -23,7 +23,7 @@ class FollowersViewSet(
     """ get all the users """
     def list(self, request):
         try:
-            queryset = self.queryset.exclude(email= request.user)
+            queryset = self.queryset.exclude(Q(email=request.user) | Q(email="admin@gmail.com"))
             serializer = self.get_serializer(queryset, many=True)
             response = {
                 'data': serializer.data,
@@ -32,6 +32,7 @@ class FollowersViewSet(
             return Response(response)
         except Exception as e:
             response = {
-                'message': e.args
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
             }
             return Response(response)

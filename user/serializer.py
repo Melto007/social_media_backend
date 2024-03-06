@@ -45,7 +45,7 @@ class ResetSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'county', 'state', 'city', 'bio']
+        fields = ['id', 'user', 'image']
         depth=1
 
     def create(self, validated_data):
