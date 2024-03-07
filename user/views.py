@@ -30,7 +30,10 @@ from django.conf import settings
 from core.models import (
     Profile
 )
-from config.cloudinary import upload_image
+from config.cloudinary import (
+    upload_image,
+    delete_image
+)
 
 """ Register user for class """
 class UserRegisterMixin(
@@ -408,11 +411,34 @@ class ProfileMixinView(
             return Response(response)
 
     def update(self, request, pk):
-        print(type(int(pk)))
         file = request.FILES.get('image', None)
 
-        secure_url = upload_image(file)
-        print(secure_url)
+        if file is None:
+            raise exceptions.APIException("file field is required")
+
+        instance = self.queryset.get(id=pk)
+
+        if not instance:
+            raise exceptions.APIException("Invalid User")
+
+        if instance.image:
+            delete_image(instance.image)
+
+        upload_file = upload_image(file)
+
+        payload = {
+            'image': upload_file['public_id'],
+            'url': upload_file['secure_url']
+        }
+
+        serializer = self.get_serializer(
+            instance,
+            data=payload,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         response = {
             'data': 'success',
             'status': status.HTTP_200_OK
