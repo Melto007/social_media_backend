@@ -387,11 +387,28 @@ class GoogleAuthentication(
 class ProfileMixinView(
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
     authentication_classes = [authentication.JWTAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            response = {
+                'data': serializer.data,
+                'status': status.HTTP_200_OK
+            }
+            return Response(response)
+        except Exception as e:
+            response = {
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
+            }
+            return Response(response)
 
     def list(self, request):
         try:
@@ -411,36 +428,43 @@ class ProfileMixinView(
             return Response(response)
 
     def update(self, request, pk):
-        file = request.FILES.get('image', None)
+        try:
+            file = request.FILES.get('image', None)
 
-        if file is None:
-            raise exceptions.APIException("file field is required")
+            if file is None:
+                raise exceptions.APIException("file field is required")
 
-        instance = self.queryset.get(id=pk)
+            instance = self.queryset.get(id=pk)
 
-        if not instance:
-            raise exceptions.APIException("Invalid User")
+            if not instance:
+                raise exceptions.APIException("Invalid User")
 
-        if instance.image:
-            delete_image(instance.image)
+            if instance.image:
+                delete_image(instance.image)
 
-        upload_file = upload_image(file)
+            upload_file = upload_image(file)
 
-        payload = {
-            'image': upload_file['public_id'],
-            'url': upload_file['secure_url']
-        }
+            payload = {
+                'image': upload_file['public_id'],
+                'url': upload_file['secure_url']
+            }
 
-        serializer = self.get_serializer(
-            instance,
-            data=payload,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            serializer = self.get_serializer(
+                instance,
+                data=payload,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-        response = {
-            'data': 'success',
-            'status': status.HTTP_200_OK
-        }
-        return Response(response)
+            response = {
+                'data': 'success',
+                'status': status.HTTP_200_OK
+            }
+            return Response(response)
+        except Exception as e:
+            response = {
+                'message': e.args,
+                'status': status.HTTP_404_NOT_FOUND
+            }
+            return Response(response)

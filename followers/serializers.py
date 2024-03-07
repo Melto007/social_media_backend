@@ -1,8 +1,9 @@
-from django.contrib.auth import get_user_model
+from core.models import Profile
 from rest_framework import serializers
 
 """ followers serializer"""
 class FollowerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ['id', 'name', 'email']
+        model = Profile
+        fields = ['id', 'user', 'image', 'url']
+        depth = 1

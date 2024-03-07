@@ -8,7 +8,7 @@ from config import authentication
 from .serializers import (
     FollowerSerializer
 )
-from django.contrib.auth import get_user_model
+from core.models import Profile
 from django.db.models import Q
 
 """ followers views class """
@@ -18,12 +18,12 @@ class FollowersViewSet(
 ):
     serializer_class = FollowerSerializer
     authentication_classes = [authentication.JWTAuthentication]
-    queryset = get_user_model().objects.all()
+    queryset = Profile.objects.all()
 
     """ get all the users """
     def list(self, request):
         try:
-            queryset = self.queryset.exclude(Q(email=request.user) | Q(email="admin@gmail.com"))
+            queryset = self.queryset.exclude(Q(user=request.user) | Q(id=15))
             serializer = self.get_serializer(queryset, many=True)
             response = {
                 'data': serializer.data,
