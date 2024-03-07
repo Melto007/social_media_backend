@@ -30,6 +30,7 @@ from django.conf import settings
 from core.models import (
     Profile
 )
+from config.cloudinary import upload_image
 
 """ Register user for class """
 class UserRegisterMixin(
@@ -382,6 +383,7 @@ class GoogleAuthentication(
 """ user details """
 class ProfileMixinView(
     mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = ProfileSerializer
@@ -404,3 +406,15 @@ class ProfileMixinView(
                 'status': status.HTTP_404_NOT_FOUND
             }
             return Response(response)
+
+    def update(self, request, pk):
+        print(type(int(pk)))
+        file = request.FILES.get('image', None)
+
+        secure_url = upload_image(file)
+        print(secure_url)
+        response = {
+            'data': 'success',
+            'status': status.HTTP_200_OK
+        }
+        return Response(response)
