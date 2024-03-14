@@ -35,6 +35,9 @@ from config.cloudinary import (
     delete_image
 )
 
+import base64
+from django.core.files.base import ContentFile
+
 """ Register user for class """
 class UserRegisterMixin(
     mixins.CreateModelMixin,
@@ -393,6 +396,7 @@ class ProfileMixinView(
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
     authentication_classes = [authentication.JWTAuthentication]
+    lookup_field = 'slug'
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -429,12 +433,12 @@ class ProfileMixinView(
 
     def update(self, request, pk):
         try:
-            file = request.FILES.get('image', None)
+            file = request.data.get('image', None)
 
             if file is None:
                 raise exceptions.APIException("file field is required")
 
-            instance = self.queryset.get(id=pk)
+            instance = self.queryset.get(slug=pk)
 
             if not instance:
                 raise exceptions.APIException("Invalid User")
@@ -458,7 +462,7 @@ class ProfileMixinView(
             serializer.save()
 
             response = {
-                'data': 'success',
+                'data': 'profile picture changed successfully',
                 'status': status.HTTP_200_OK
             }
             return Response(response)

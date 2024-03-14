@@ -5,5 +5,5 @@ from rest_framework import serializers
 class FollowerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'image', 'url']
+        fields = ['id', 'user', 'image', 'url', 'slug']
         depth = 1

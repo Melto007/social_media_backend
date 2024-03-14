@@ -5,6 +5,8 @@ from django.contrib.auth.models import (
     AbstractUser
 )
 from django.conf import settings
+from django.template.defaultfilters import slugify
+from django.urls import reverse
 # from phone_field import PhoneField
 
 
@@ -93,10 +95,19 @@ class Profile(models.Model):
     )
     image = models.CharField(max_length=255, blank=True, null=True)
     url = models.CharField(max_length=255, blank=True, null=True)
+    slug = models.SlugField(null=False, unique=True)
     status = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.user.name)
+
+    def get_absolute_url(self):
+        return reverse("profile", kwargs={"slug": self.slug})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.user.name)
+        return super().save(*args, **kwargs)
 
 class ProfileDetails(models.Model):
     user = models.OneToOneField(

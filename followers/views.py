@@ -23,7 +23,7 @@ class FollowersViewSet(
     """ get all the users """
     def list(self, request):
         try:
-            queryset = self.queryset.exclude(Q(user=request.user) | Q(id=15))
+            queryset = self.queryset.exclude(Q(user=request.user) | Q(id=17))
             serializer = self.get_serializer(queryset, many=True)
             response = {
                 'data': serializer.data,
