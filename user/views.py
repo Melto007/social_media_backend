@@ -431,14 +431,14 @@ class ProfileMixinView(
             }
             return Response(response)
 
-    def update(self, request, pk):
+    def update(self, request, slug):
         try:
             file = request.data.get('image', None)
 
             if file is None:
                 raise exceptions.APIException("file field is required")
 
-            instance = self.queryset.get(slug=pk)
+            instance = self.queryset.get(slug=slug)
 
             if not instance:
                 raise exceptions.APIException("Invalid User")
