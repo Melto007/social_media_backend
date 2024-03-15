@@ -7,7 +7,6 @@ from django.contrib.auth.models import (
 from django.conf import settings
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-# from phone_field import PhoneField
 
 
 def emailValidation(value):
@@ -16,12 +15,6 @@ def emailValidation(value):
         return value
     else:
         raise ValidationError("Invalid MailId")
-
-# def phoneValidation(value):
-#     """ phone validation check """
-#     if len(value) == 10:
-#         raise value
-#     raise ValidationError("Invaild Phone Number")
 
 class UserManager(BaseUserManager):
     """ base user manager """
@@ -121,3 +114,20 @@ class ProfileDetails(models.Model):
 
     def __str__(self):
         return str(self.user.name)
+
+class Followers(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='user'
+    )
+    following = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='following'
+    )
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        names = self.user.name + ' is following ' + self.following.name
+        return str(names)
