@@ -1,5 +1,6 @@
 from core.models import (
     Profile,
+    Follower
 )
 from rest_framework import serializers
 
@@ -10,3 +11,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'image', 'url', 'slug']
         depth = 1
         lookup_field = 'slug'
+
+class FollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follower
+        fields = ['id', 'user', 'following', 'status']
+        depth = 1
+
+    def create(self, validated_data):
+        return Follower.objects.create(**validated_data)

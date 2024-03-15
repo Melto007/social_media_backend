@@ -115,7 +115,7 @@ class ProfileDetails(models.Model):
     def __str__(self):
         return str(self.user.name)
 
-class Followers(models.Model):
+class Follower(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

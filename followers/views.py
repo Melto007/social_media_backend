@@ -7,9 +7,11 @@ from rest_framework.response import Response
 from config import authentication
 from .serializers import (
     ProfileSerializer,
+    FollowingSerializer
 )
 from core.models import (
     Profile,
+    Follower
 )
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -41,15 +43,26 @@ class FollowersViewSet(
             }
             return Response(response)
 
+class FollowingViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = FollowingSerializer
+    authentication_classes = [authentication.JWTAuthentication]
+    queryset = Follower.objects.all()
+
     def create(self, request):
         try:
             data = request.data
             sender = data.get('sender', None)
-            queryset = Profile.objects.get(slug=sender)
-            serializer = self.get_serializer(queryset)
+            profile = get_user_model().objects.get(name=sender)
+
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=request.user, following=profile)
 
             response = {
-                'data': serializer.data,
+                'data': 'user followed successfully',
                 'status': status.HTTP_200_OK
             }
             return Response(response)
