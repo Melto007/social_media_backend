@@ -31,7 +31,7 @@ class FollowersViewSet(
     """ get all the users """
     def list(self, request):
         try:
-            queryset = self.queryset.exclude(Q(user=request.user) | Q(slug='admin'))
+            queryset = self.queryset.exclude(Q(user=request.user)) #| Q(slug='admin')
             serializer = self.get_serializer(queryset, many=True)
             response = {
                 'data': serializer.data,
@@ -108,8 +108,11 @@ class FollowingViewSet(
 
             follower.delete()
 
+            follower = self.queryset.filter(user=request.user)
+            serializer = self.get_serializer(follower, many=True)
+
             response = {
-                'data': 'follower deleted successfully',
+                'data': serializer.data,
                 'status': status.HTTP_200_OK
             }
             return Response(response)
