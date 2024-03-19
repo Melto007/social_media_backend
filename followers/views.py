@@ -78,10 +78,11 @@ class FollowingViewSet(
             follower = data.get('follower', None)
 
             profile = get_user_model().objects.get(name=follower)
+            profileImg = Profile.objects.get(user=request.user)
 
             serializer = self.get_serializer(data={'status': True})
             serializer.is_valid(raise_exception=True)
-            serializer.save(user=request.user, following=profile)
+            serializer.save(user=request.user, following=profile, userProfile=profileImg)
 
             follower = self.queryset.filter(user=request.user)
             serializer = self.get_serializer(follower, many=True)

@@ -126,6 +126,11 @@ class Follower(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+    userProfile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name="userProfile"
+    )
     status = models.BooleanField(default=True)
 
     def __str__(self):

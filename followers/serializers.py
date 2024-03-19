@@ -15,7 +15,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class FollowingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follower
-        fields = ['id', 'user', 'following', 'status']
+        fields = ['id', 'user', 'following', 'status', 'userProfile']
         depth = 1
 
     def create(self, validated_data):
