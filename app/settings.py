@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "user.apps.UserConfig",
     "followers.apps.FollowersConfig",
-    "notification.apps.NotificationConfig"
+    "notification.apps.NotificationConfig",
+    "post.apps.PostConfig"
 ]
 
 MIDDLEWARE = [

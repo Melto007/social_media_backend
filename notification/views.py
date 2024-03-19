@@ -23,7 +23,7 @@ class NotificationViewSet(
 
     def list(self, request):
         try:
-            queryset = self.queryset.filter(user=request.user)
+            queryset = self.queryset.filter(user=request.user, status=True)
             serializer = self.get_serializer(queryset, many=True)
 
             if not queryset:

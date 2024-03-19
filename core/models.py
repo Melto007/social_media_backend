@@ -136,3 +136,20 @@ class Follower(models.Model):
     def __str__(self):
         names = self.user.name + ' is following ' + self.following.name
         return str(names)
+
+class Post(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    post = models.TextField()
+    tags = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.profile.user.name
