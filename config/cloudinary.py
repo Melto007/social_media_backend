@@ -1,5 +1,4 @@
 """ image upload """
-
 import cloudinary
 import datetime
 

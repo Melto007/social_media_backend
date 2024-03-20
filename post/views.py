@@ -4,12 +4,17 @@ from rest_framework import (
     status
 )
 from rest_framework.response import Response
-from .serializers import PostSerializer
+from .serializers import (
+    PostSerializer,
+    TagSerializer
+)
 from config.authentication import JWTAuthentication
 from core.models import (
     Post,
-    Profile
+    Profile,
+    Tag
 )
+from config.cloudinary import upload_image
 
 class PostViewSet(
     mixins.CreateModelMixin,
@@ -22,11 +27,33 @@ class PostViewSet(
     def create(self, request):
         try:
             data = request.data
-            instance = Profile.objects.get(user=request.user)
 
-            serializer = self.get_serializer(data=data)
+            tag = data.get('tag', None)
+            post = data.get('post', None)
+
+            instance = Profile.objects.get(user=request.user)
+            tag_exists = Tag.objects.filter(tags=tag)
+
+            if not tag_exists.exists() and tag is not None:
+                serializer = TagSerializer(data={'tags': tag})
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            else:
+                serializer = self.get_serializer(data={'post': post})
+                serializer.is_valid(raise_exception=True)
+                serializer.save(profile=instance)
+
+                response = {
+                    'data': 'post created successfully',
+                    'status': status.HTTP_200_OK
+                }
+                return Response(response)
+
+            get_tags = Tag.objects.get(tags=tag)
+
+            serializer = self.get_serializer(data={'post': post})
             serializer.is_valid(raise_exception=True)
-            serializer.save(profile=instance)
+            serializer.save(tag=get_tags, profile=instance)
 
             response = {
                 'data': 'post created successfully',

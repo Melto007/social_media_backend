@@ -137,18 +137,39 @@ class Follower(models.Model):
         names = self.user.name + ' is following ' + self.following.name
         return str(names)
 
+class Tag(models.Model):
+    tags = models.CharField(max_length=255, null=True, blank=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return str(self.tags)
+
 class Post(models.Model):
     profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
         related_name='profile'
     )
-    post = models.TextField()
-    tags = models.CharField(
-        max_length=255,
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.DO_NOTHING,
+        related_name='tag',
         null=True,
         blank=True
     )
+    post = models.TextField()
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.profile.user.name
+
+class PostImage(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE
+    )
+    image = models.CharField(max_length=255, null=True, blank=True)
+    url = models.CharField(max_length=255, null=True, blank=True)
     status = models.BooleanField(default=True)
 
     def __str__(self):
